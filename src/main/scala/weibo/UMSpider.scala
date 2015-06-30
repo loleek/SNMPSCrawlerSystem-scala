@@ -14,6 +14,7 @@ import weibo.WeiboAccountManager.NoneWeiboAccount
 import weibo.WeiboMessages.FirstPageContent
 import weibo.WeiboMessages.PageInfo
 import weibo.WeiboMessages.PageParseError
+import org.apache.http.client.config.RequestConfig
 
 /**
  * @author dk
@@ -37,16 +38,24 @@ class UMSpider extends Actor {
       if (currentAccount == null)
         atm ! WeiboAccountRequest(hostname)
       else {
-        val tweetcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_WEIBO_SECOND_PROFILE_WEIBO&page=1")
-        val followcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_FOLLOWERS&page=1")
+        try {
+          val tweetcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_WEIBO_SECOND_PROFILE_WEIBO&page=1")
+          val followcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_FOLLOWERS&page=1")
 
-        parser ! FirstPageContent(tweetcontent, followcontent)
+          parser ! FirstPageContent(tweetcontent, followcontent)
+        } catch {
+          case _: Exception => {
+            atm ! WrongWeiboAccount(hostname)
+            this.currentAccount = null
+          }
+        }
 
       }
     }
     case account @ WeiboAccount(name, pass) => {
       currentAccount = account
       client = HttpClients.createDefault()
+
       try {
         login(client, account)
       } catch {
@@ -55,11 +64,18 @@ class UMSpider extends Actor {
           this.currentAccount = null
         }
       }
-      val tweetcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${this.currentUid}_-_WEIBO_SECOND_PROFILE_WEIBO&page=1")
-      val followcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${this.currentUid}_-_FOLLOWERS&page=1")
 
-      parser ! FirstPageContent(tweetcontent, followcontent)
-      
+      try {
+        val tweetcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${this.currentUid}_-_WEIBO_SECOND_PROFILE_WEIBO&page=1")
+        val followcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${this.currentUid}_-_FOLLOWERS&page=1")
+        parser ! FirstPageContent(tweetcontent, followcontent)
+      } catch {
+        case _: Exception => {
+          atm ! WrongWeiboAccount(hostname)
+          this.currentAccount = null
+        }
+      }
+
     }
     case NoneWeiboAccount => {
       context.parent ! NoneWeiboAccount

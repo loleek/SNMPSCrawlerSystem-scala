@@ -84,13 +84,19 @@ class Spider extends Actor {
       context.parent ! ShutDown
     }
     case WeiboNormalUrl(tag, url) => {
-      this.currentTag = tag
-      this.currentUrl = url
-      Thread.sleep(4000)
-      val content = getContent(client, url)
-      parser ! DataPageContent(tag, content)
+      try {
+        this.currentTag = tag
+        this.currentUrl = url
+        Thread.sleep(4000)
+        val content = getContent(client, url)
+        parser ! DataPageContent(tag, content)
 
-      status = 2
+        status = 2
+      } catch {
+        case _: Exception => {
+          self ! PageParseError
+        }
+      }
     }
     case DataResult(content) => {
       currentTag match {

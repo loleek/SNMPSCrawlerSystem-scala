@@ -1,16 +1,15 @@
 package core
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.DurationInt
 import scala.concurrent.duration._
+import scala.concurrent.duration.DurationInt
 import akka.pattern.ask
 import akka.util.Timeout
 import spray.httpx.marshalling._
 import spray.json.DefaultJsonProtocol
 import spray.json.JsonFormat
-import spray.routing.HttpServiceActor
-import spray.http.MediaTypes
 import spray.routing.Directive.pimpApply
+import spray.routing.HttpServiceActor
 import spray.routing.HttpServiceActor
 import weibo.WeiboMessages._
 import scala.concurrent.Await
@@ -41,6 +40,10 @@ class SNMPSCrawlerSystemHttpService extends HttpServiceActor {
       val future = masterRef ? StatusQuery
       val result = Await.result(future, 5 seconds).asInstanceOf[SystemStatus]
       ctx.complete(result)
-    }
+    } ~
+      path("shutdown") { ctx =>
+        masterRef ! ShutDown
+        ctx.complete("Command has been sent.The System will shutdown!!!")
+      }
   }
 }

@@ -40,7 +40,7 @@ class WeiboAccountManager extends Actor {
   import system.dispatcher
   context.system.scheduler.schedule(5 seconds, 5 seconds, new Runnable() {
     override def run(): Unit = {
-      context.parent ! new AccountManagerStatus(unused_weiboaccount_queue.size, wrongaccount_queue.size, using_weiboaccount_map.size, using_weiboaccount_map.keySet.toList)
+      context.parent ! new AccountManagerStatus(unused_weiboaccount_queue.size, wrongaccount_queue.size, using_weiboaccount_map.size, using_weiboaccount_map.values.map { _.name }.toList)
     }
   })
   def receive = {

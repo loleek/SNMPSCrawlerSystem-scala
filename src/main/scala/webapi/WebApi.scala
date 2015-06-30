@@ -103,7 +103,7 @@ class WebApi extends Actor {
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH) + 1
     val date = calendar.get(Calendar.DATE)
-    val hour = calendar.get(Calendar.HOUR)
+    val hour = calendar.get(Calendar.HOUR_OF_DAY)
     //    val minute=calendar.get(Calendar.MINUTE)
     //    val second=calendar.get(Calendar.SECOND)
     s"${tag}-${year}-${month}-${date}-${hour}.txt"
