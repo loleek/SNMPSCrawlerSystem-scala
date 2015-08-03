@@ -80,7 +80,10 @@ class Parser extends Actor {
     val comments_count = weibo.comments_count
     val attitudes_count = weibo.attitudes_count
     val pic = weibo.pic_ids.mkString("[", ",", "]")
-    val topic = weibo.topic_struct.map(_.topic_title).mkString(" ")
+    val topic = weibo.topic_struct.map(_.topic_title).mkString(" ").trim match {
+      case ""=>"null"
+      case other:String=>other
+    }
     s"${mid}\t${text}\t${uid}\t${name}\t${source}\t${time}\t${rid}\t${pid}\t${reposts_count}\t${comments_count}\t${attitudes_count}\t${pic}\t${topic}"
   }
 }
