@@ -15,7 +15,9 @@ import weibo.WeiboMessages.FirstPageContent
 import weibo.WeiboMessages.PageInfo
 import weibo.WeiboMessages.PageParseError
 import org.apache.http.client.config.RequestConfig
-
+import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.Await
 /**
  * @author dk
  */
@@ -32,6 +34,9 @@ class UMSpider extends Actor {
 
   val parser = context.actorOf(Props[UMParser], "umparser")
 
+  val system = context.system
+  import system.dispatcher
+
   def receive = {
     case uid: String => {
       currentUid = uid
@@ -39,8 +44,18 @@ class UMSpider extends Actor {
         atm ! WeiboAccountRequest(hostname)
       else {
         try {
-          val tweetcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_WEIBO_SECOND_PROFILE_WEIBO&page=1")
-          val followcontent = getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_FOLLOWERS&page=1")
+
+          val futuretweetcontent = Future {
+            getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_WEIBO_SECOND_PROFILE_WEIBO&page=1")
+          }
+
+          val tweetcontent = Await.result(futuretweetcontent, 10 seconds)
+
+          val futurefollowcontent = Future {
+            getContent(client, s"http://m.weibo.cn/page/json?containerid=100505${uid}_-_FOLLOWERS&page=1")
+          }
+
+          val followcontent = Await.result(futurefollowcontent, 10 seconds)
 
           parser ! FirstPageContent(tweetcontent, followcontent)
         } catch {

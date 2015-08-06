@@ -21,6 +21,8 @@ import weibo.WeiboMessages.ShutDown
 import weibo.WeiboMessages.CrawlerStatus
 import weibo.WeiboUtil._
 import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.concurrent.Await
 
 /**
  * @author dk
@@ -88,8 +90,13 @@ class Spider extends Actor {
         this.currentTag = tag
         this.currentUrl = url
         Thread.sleep(4000)
-        val content = getContent(client, url)
-        parser ! DataPageContent(tag, content)
+
+        val future = Future {
+          getContent(client, url)
+        }
+        
+        val result=Await.result(future, 10 seconds)
+        parser ! DataPageContent(tag, result)
 
         status = 2
       } catch {

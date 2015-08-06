@@ -39,7 +39,8 @@ class SNMPSCrawlerSystemHttpService extends HttpServiceActor {
     path("monitor") { ctx =>
       val future = masterRef ? StatusQuery
       val result = Await.result(future, 5 seconds).asInstanceOf[SystemStatus]
-      ctx.complete(result)
+      val finalresult = marshal(result).map { entity => s"foo(${entity.asString})" }
+      ctx.complete(finalresult)
     } ~
       path("shutdown") { ctx =>
         masterRef ! ShutDown
