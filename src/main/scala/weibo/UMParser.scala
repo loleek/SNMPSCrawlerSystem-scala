@@ -37,7 +37,7 @@ class UMParser extends Actor {
         
         sender ! PageInfo(tc,fc)
       } catch {
-        case _: JsonParseException => {
+        case _: Exception => {
           sender ! PageParseError
         }
       }

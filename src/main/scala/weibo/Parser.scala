@@ -34,7 +34,7 @@ class Parser extends Actor {
 
             sender ! DataResult(result.mkString("\n"))
           } catch {
-            case _: JsonParseException => {
+            case _: Exception => {
               sender ! PageParseError
             }
           }
